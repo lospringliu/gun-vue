@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>account.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Account.html">Account</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Account.html#.downloadJSON">downloadJSON</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Account.html#.useAccount">useAccount</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Account.html#~auth">auth</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-Account.html#~leave">leave</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-File.html">File</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-File.html#.downloadText">downloadText</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-File.html#.useFileUpload">useFileUpload</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-Gun.html">Gun</a></span></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">account.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Basic account management
+ * @module Account
+ * */
+
+import { gun, SEA } from "./gun";
+import { reactive, computed } from "vue";
+import { downloadText } from "./file";
+
+/**
+ * @typedef {Reactive} Account - A reactive object to handle current user account
+ * @property {Boolean} initiated - used to determine if we already initiated the account
+ * @property {Object} is - the reactive gun.user().is property, containing the public keys of a logged in user
+ * @property {String} pub - user's public key computed from the `account.is.pub`
+ * @property {Object} profile - user profile – the key-value store for any user account data
+ * @property {Number} pulse - recent timestamp of the user
+ * @property {Number} pulser - the id of a setInterval, that's driving the pulse
+ * @property {Boolean} blink - changes on every timestamp message and makes the status indicator blink if user is online
+ * @property {Object} space - the private gun.user().get('space') graph for application data
+ * @property {Object} user - gun.user() instance
+ */
+
+export const account = reactive({
+  initiated: false,
+  is: null,
+  pub: computed(() => account?.is?.pub),
+  profile: { name: "no name" },
+  pulse: 0,
+  pulser: null,
+  blink: false,
+  space: gun.user().get("space"),
+  user: gun.user(),
+});
+
+/**
+ * Gives access to the gun user account
+ * @typedef {Object} useAccount - User access system
+ * @property {Account} account - the reactive user object
+ * @property {function} auth - log in
+ * @property {Function} leave - log out
+ */
+
+/**
+ * Account system access
+ * @returns {useAccount}
+ */
+export function useAccount() {
+  if (!account.is) {
+    gun.user().recall({ sessionStorage: true }, () => {
+      console.log("user was recalled");
+      init();
+    });
+
+    gun.on("auth", () => {
+      init();
+      console.log("user authenticated");
+    });
+  }
+
+  return { account, auth, leave };
+}
+
+/**
+ * Authenticate with a SEA key pair
+ * @param {Object} pair
+ */
+
+async function auth(pair) {
+  console.log(pair);
+  if (!pair || !pair.pub || !pair.priv) {
+    pair = await SEA.pair();
+    console.log("new account created");
+  }
+  gun.user().auth(pair, async () => {
+    console.log("account is authenticated");
+  });
+}
+
+function init() {
+  if (account.initiated) return;
+  account.is = gun.user().is;
+  if (account.pulser) {
+    clearInterval(account.pulser);
+  }
+  account.pulser = setInterval(() => {
+    gun.user().get("pulse").put(Date.now());
+  }, 1000);
+
+  loadProfile();
+  account.initiated = true;
+}
+
+function loadProfile() {
+  gun
+    .user()
+    .get("pulse")
+    .on((d) => {
+      account.blink = !account.blink;
+      account.pulse = d;
+    })
+    .back()
+    .get("profile")
+    .map()
+    .on((data, key) => {
+      account.profile[key] = data;
+    });
+}
+
+function updateProfile(field, data) {
+  if (field &amp;&amp; data !== undefined) {
+    gun.user().get("profile").get(field).put(data);
+  }
+}
+
+/**
+ * Log out the user and rest the account object
+ */
+
+function leave() {
+  let is = !!account.is?.pub;
+  account.initiated = false;
+  clearInterval(account.pulser);
+  gun.user().leave();
+  setTimeout(() => {
+    if (is &amp;&amp; !gun.user()._?.sea) {
+      account.is = null;
+      account.profile = {};
+      console.info("User logged out");
+    }
+  }, 500);
+}
+
+export async function findByAlias(alias) {
+  return await gun.get("~@" + alias).then();
+}
+
+async function hasPass(pub) {
+  return await gun.get(`~${pub}`).get("pass").get("pair").then();
+}
+
+async function getFromPass(pub, password) {
+  let encPair = await gun.get(`~${pub}`).get("pass").get("pair").then();
+  return await SEA.decrypt(encPair, password);
+}
+
+function isMine(soul) {
+  if (!soul) return;
+  return soul.slice(1, 88) == account.pub;
+}
+
+/**
+ * Download full keypair as a json file
+ * @param {Object} pair - a SEA keypair. If not set – the current user keypair is downloaded
+ */
+export function downloadJSON(pair) {
+  if (!pair || !pair?.pub) {
+    pair = gun.user()._.sea;
+  }
+  pair = JSON.stringify(pair);
+  downloadText(pair, "application/json", account.profile.name + ".json");
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.7</a> on Tue Dec 07 2021 13:43:08 GMT+0300 (Moscow Standard Time) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>
