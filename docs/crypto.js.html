@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Home - Documentation</title>
+    <title>crypto.js - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,44 +29,61 @@
 
 <div id="main">
     
+    <h1 class="page-title">crypto.js</h1>
+    
 
     
 
 
 
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * SEA cryptography abstraction
+ * @module Crypto
+ */
 
+import { SEA, gun } from "./gun";
 
+/**
+ * @typedef {Object} Entity
+ * @property {String} pub - the public key
+ * @property {String} epub - the elliplic encryption epub
+ */
 
+/**
+ * Encrypt data for one receiver entity
+ * 1. Generates encryption secret using bob's epub and current user pair
+ * 2. Enctypts data with this secret
+ * @param {String} data - Stringified data to be encrypted
+ * @param {Entity} sender - An object with `pub` and `epub` strings - the user.is object of the reciever's account
+ * @param {SEAPair} receiver - SEA Pair of the sender – `epriv` key will be used to encrypt the data
+ * @returns {String} Encrypted data string to be sent
+ */
+export async function encFor(data, receiver, sender = gun.user()._.sea) {
+  const secret = await SEA.secret(receiver.epub, sender);
+  const encryptedData = await SEA.encrypt(data, secret);
+  return encryptedData;
+}
 
-
-
-
-
-
-    
-
-
-    <section class="readme">
-        <article><h1>GUN-VUE</h1>
-<p>Gun – the peer-to-peer javascript database meets the reactivity system of the modern JS framework Vue 3.</p>
-<h2>@gun-vue</h2>
-<p>There are 3 packages in the <a href="https://www.npmjs.com/settings/gun-vue/packages">@gun-vue organization</a> for you to install and use.</p>
-<h3>Composables</h3>
-<p><a href="https://www.npmjs.com/package/@gun-vue/composables">@gun-vue/composables</a></p>
-<p>A set of composable functions for use with Vue 3 Composition API</p>
-<h3>Components</h3>
-<p><a href="https://www.npmjs.com/package/@gun-vue/components">@gun-vue/components</a></p>
-<p>A set of ready to use Vue 3 components as building blocks to implement Gun powered interactivity in seconds</p>
-<h2>Relay</h2>
-<p><a href="https://www.npmjs.com/package/@gun-vue/relay">@gun-vue/relay</a></p>
-<p>A simple no-store Gun server for throwing to any free tier Node.js environment.</p>
-<h2>DEMO</h2>
-<p>Try them all yourself in the demo app.</p>
-<p><a href="https://defucc.github.io/gun-vue">defucc.github.io/gun-vue</a></p></article>
+/**
+ * Decrypt a private message from an entity
+ * 1. Generates secret using senders `epub` and current user pair
+ * 2. Decrypts the data with this secret
+ * @param {String} data - Encrypted private data
+ * @param {Entity} sender - An object with `pub` and `epub` strings - the user.is object of the sender's account
+ * @param {SEAPair} receiver - SEA Pair of the receiver – `epriv` key will be used to encrypt the data
+ * @returns {String} Decrypted data
+ */
+export async function decFrom(data, sender, receiver = gun.user()._.sea) {
+  const secret = await SEA.secret(sender.epub, receiver);
+  const decryptedData = await SEA.decrypt(data, secret);
+  return decryptedData;
+}
+</code></pre>
+        </article>
     </section>
-
-
 
 
 

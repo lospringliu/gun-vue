@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>File - Documentation</title>
+    <title>Crypto - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,7 +29,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">File</h1>
+    <h1 class="page-title">Crypto</h1>
     
 
     
@@ -51,7 +51,7 @@
     <div class="container-overview">
     
         
-            <div class="description"><p>File handling functions</p></div>
+            <div class="description"><p>SEA cryptography abstraction</p></div>
         
 
         
@@ -93,7 +93,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="file.js.html">file.js</a>, <a href="file.js.html#line1">line 1</a>
+        <a href="crypto.js.html">crypto.js</a>, <a href="crypto.js.html#line1">line 1</a>
     </li></ul></dd>
     
 
@@ -152,14 +152,18 @@
 
     
 
-    <h4 class="name" id=".downloadJSON"><span class="type-signature">(static) </span>downloadJSON<span class="signature">(pair)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id=".decFrom"><span class="type-signature">(static) </span>decFrom<span class="signature">(data, sender, receiver)</span><span class="type-signature"> &rarr; {String}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Download full keypair as a json file</p>
+    <p>Decrypt a private message from an entity</p>
+<ol>
+<li>Generates secret using senders <code>epub</code> and current user pair</li>
+<li>Decrypts the data with this secret</li>
+</ol>
 </div>
 
 
@@ -195,7 +199,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="file.js.html">file.js</a>, <a href="file.js.html#line33">line 33</a>
+        <a href="crypto.js.html">crypto.js</a>, <a href="crypto.js.html#line38">line 38</a>
     </li></ul></dd>
     
 
@@ -239,142 +243,7 @@
 
         <tr>
             
-                <td class="name"><code>pair</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><code>Object</code></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>a SEA keypair. If not set – the current user keypair is downloaded</p>
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id=".downloadText"><span class="type-signature">(static) </span>downloadText<span class="signature">(text, fileType, fileName)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>A method to download any text as a file</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="file.js.html">file.js</a>, <a href="file.js.html#line13">line 13</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>text</code></td>
+                <td class="name"><code>data</code></td>
             
 
             <td class="type">
@@ -391,7 +260,7 @@
             
 
             <td class="description last">
-                <p>the text to download</p>
+                <p>Encrypted private data</p>
                 
             </td>
         </tr>
@@ -400,13 +269,13 @@
 
         <tr>
             
-                <td class="name"><code>fileType</code></td>
+                <td class="name"><code>sender</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><code>String</code></span>
+<span class="param-type"><code>Entity</code></span>
 
 
             
@@ -417,7 +286,7 @@
             
 
             <td class="description last">
-                <p>the file type like &quot;application/json&quot;</p>
+                <p>An object with <code>pub</code> and <code>epub</code> strings - the user.is object of the sender's account</p>
                 
             </td>
         </tr>
@@ -426,13 +295,13 @@
 
         <tr>
             
-                <td class="name"><code>fileName</code></td>
+                <td class="name"><code>receiver</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><code>String</code></span>
+<span class="param-type"><code>SEAPair</code></span>
 
 
             
@@ -443,7 +312,7 @@
             
 
             <td class="description last">
-                <p>the full file name like &quot;myKey.json&quot;</p>
+                <p>SEA Pair of the receiver – <code>epriv</code> key will be used to encrypt the data</p>
                 
             </td>
         </tr>
@@ -451,246 +320,6 @@
     
     </tbody>
 </table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id=".uploadJSON"><span class="type-signature">(static) </span>uploadJSON<span class="signature">(event, callback)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>Upload and parse JSON keypair</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="file.js.html">file.js</a>, <a href="file.js.html#line46">line 46</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>event</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><code>Event</code></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p><code>$event</code> from the <code>@change</code> handler</p>
-                
-            </td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>callback</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><code>function</code></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>a function to handle the loaded file from the reader</p>
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id=".useFileUpload"><span class="type-signature">(static) </span>useFileUpload<span class="signature">()</span><span class="type-signature"> &rarr; {Object}</span></h4>
-
-    
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="file.js.html">file.js</a>, <a href="file.js.html#line68">line 68</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
 
 
 
@@ -716,7 +345,7 @@
     </dt>
     <dd>
         
-<span class="param-type"><code>Object</code></span>
+<span class="param-type"><code>String</code></span>
 
 
     </dd>
@@ -724,9 +353,223 @@
 
 
 <div class="param-desc">
-    <ul>
-<li>The reactive state of the upload and a handleChange function to put it to @change=&quot;handleChange&quot; of the file input</li>
-</ul>
+    <p>Decrypted data</p>
+</div>
+
+    
+</div>
+
+
+
+</div>
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id=".encFor"><span class="type-signature">(static) </span>encFor<span class="signature">(data, sender, receiver)</span><span class="type-signature"> &rarr; {String}</span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Encrypt data for one receiver entity</p>
+<ol>
+<li>Generates encryption secret using bob's epub and current user pair</li>
+<li>Enctypts data with this secret</li>
+</ol>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="crypto.js.html">crypto.js</a>, <a href="crypto.js.html#line23">line 23</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>String</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>Stringified data to be encrypted</p>
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>sender</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>Entity</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>An object with <code>pub</code> and <code>epub</code> strings - the user.is object of the reciever's account</p>
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>receiver</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>SEAPair</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>SEA Pair of the sender – <code>epriv</code> key will be used to encrypt the data</p>
+                
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="section-returns">
+<h5>Returns:</h5>
+
+        
+
+<dl class="param-type">
+    <dt>
+        Type:
+    </dt>
+    <dd>
+        
+<span class="param-type"><code>String</code></span>
+
+
+    </dd>
+</dl>
+
+
+<div class="param-desc">
+    <p>Encrypted data string to be sent</p>
 </div>
 
     
@@ -738,6 +581,159 @@
         
     
 
+    
+        <h3 class="subsection-title">Type Definitions</h3>
+
+        
+                
+<div class="section-members">
+<h4 class="name" id="~Entity">Entity</h4>
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>pub</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>String</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the public key</p></td>
+        </tr>
+
+        
+
+    
+
+        <tr>
+            
+                <td class="name"><code>epub</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>String</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the elliplic encryption epub</p></td>
+        </tr>
+
+        
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="crypto.js.html">crypto.js</a>, <a href="crypto.js.html#line8">line 8</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code>Object</code></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</div>
+
+            
     
 
     
