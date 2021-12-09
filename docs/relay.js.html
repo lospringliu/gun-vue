@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>gun.js - Documentation</title>
+    <title>relay.js - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,7 +29,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">gun.js</h1>
+    <h1 class="page-title">relay.js</h1>
     
 
     
@@ -40,46 +40,59 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- * Gun DB initialization and basic methods
- * @module Gun
+ * @module Relay
  */
 
-import Gun from "gun/gun";
-import SEA from "gun/sea.js";
-import "gun/lib/then";
-import "gun/lib/radix";
-import "gun/lib/radisk";
-import "gun/lib/store";
-import "gun/lib/rindexed";
-// import 'gun/lib/webrtc'
-import "gun/nts";
-
-export const peers = ["https://etogun.glitch.me/gun"];
-
-/** Established Gun instance for database operations */
-export const gun = Gun({ peers, localStorage: false });
-/** Secondary Gun instance for key management */
-export const gun2 = Gun({ peers, localStorage: false });
+import { gun, peers } from "./gun";
+import { reactive, watch } from "vue";
+import ms from "ms";
 
 /**
- * SEA library
- * @constant SEA
+ * @typedef {Reactive} Relay - Peer server status reactive object
+ * @property {String} host - the current peer server URL
+ * @property {String} status -
+ * @property {Number} started - the timestamp of server started current session
+ * @property {Number} pulse – last received timestamp
+ * @property {Number} lag - drift of the timestamp in ms
+ * @property {Number} diff - age of the session in ms
+ * @property {String} age - age of the session in human readable format
+ * @property {Boolean} blink - a Boolean toggled every time the new pulse comes to drive animations
  */
-export { default as SEA } from "gun/sea.js";
+
+const relay = reactive({
+  host,
+  status: "offline",
+  started: 0,
+  pulse: 0,
+  lag: 0,
+  diff: computed(() => relay.pulse - relay.started),
+  age: computed(() => ms(relay.diff)),
+  blink: false,
+});
 
 /**
- * **Get a soul for any given node**
- * A wrapper for `Gun.node.soul`
- * @function soul
+ * Peer server status monitor
+ * @param {URL} host
+ * @returns {Relay}
  */
-export const soul = Gun.node.soul;
+export function useRelay(host = new URL(peers[0]).hostname) {
+  watch(
+    () => relay.pulse,
+    (next, prev) => {
+      relay.blink = !relay.blink;
+      relay.lag = next - prev - 500;
+    }
+  );
 
-/**
- * **Generate a random UUID**
- * A wrapper for `Gun.text.random`
- * @function genUUID
- */
-export const genUUID = Gun.text.random;
+  gun
+    .get(host)
+    .map()
+    .on((d, k) => {
+      relay[k] = d;
+    });
+
+  return relay;
+}
 </code></pre>
         </article>
     </section>
