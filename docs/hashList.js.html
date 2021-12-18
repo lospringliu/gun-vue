@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>gun.js - Documentation</title>
+    <title>hashList.js - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,7 +29,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">gun.js</h1>
+    <h1 class="page-title">hashList.js</h1>
     
 
     
@@ -40,45 +40,32 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- * Gun DB initialization and basic methods
- * @module Gun
+ * Immutable hashed list of data
+ * @module HashList
  */
 
-import Gun from "gun/gun";
-import "gun/lib/then";
-import "gun/lib/radix";
-import "gun/lib/radisk";
-import "gun/lib/store";
-import "gun/lib/rindexed";
-// import 'gun/lib/webrtc'
-import "gun/nts";
+import { gun, SEA } from "./gun";
+import { hashObj } from "./hash";
 
-export const peers = ["https://etogun.glitch.me/gun"];
+export function usePublicHashList(tag = "hashed") {
+  const list = reactive({});
 
-/** Established Gun instance for database operations */
-export const gun = Gun({ peers, localStorage: false });
-/** Secondary Gun instance for key management */
-export const gun2 = Gun({ peers, localStorage: false });
+  const timestamps = reactive({});
 
-/**
- * SEA library
- * @constant SEA
- */
-export { default as SEA } from "gun/sea.js";
+  gun
+    .get(`#${tag}`)
+    .map()
+    .on(function (d, k) {
+      list[k] = JSON.parse(d);
+    });
 
-/**
- * **Get a soul for any given node**
- * A wrapper for `Gun.node.soul`
- * @function soul
- */
-export const soul = Gun?.node?.soul;
+  async function addToList(obj) {
+    const { text, hash } = await hashObj(obj);
+    gun.get(`#${tag}`).get(`${hash}`).put(text);
+  }
 
-/**
- * **Generate a random UUID**
- * A wrapper for `Gun.text.random`
- * @function genUUID
- */
-export const genUUID = Gun?.text?.random;
+  return { list, addToList };
+}
 </code></pre>
         </article>
     </section>
