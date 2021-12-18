@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Home - Documentation</title>
+    <title>tags.js - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,46 +29,128 @@
 
 <div id="main">
     
+    <h1 class="page-title">tags.js</h1>
+    
 
     
 
 
 
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Immutable hashed list of data
+ * @module HashList
+ */
 
+import { gun, SEA } from "./gun";
+import { hashObj, hashText } from "./hash";
 
+import slugify from "slugify";
+import Fuse from "fuse.js";
 
+/**
+ * @typedef useTags
+ * @property {Ref} search - a ref to bind to an input element
+ * @property {Computed} slug - a slugified search query - url safe verion to be used as a tag
+ * @property {Tags} tags - the object to handle all the tags
+ * @property {Function} addTag - add a slug tag to the list
+ */
 
+/**
+ * Toolkit to deal with the available tags
+ * @returns {useTags}
+ */
+export function useTags() {
+  const search = ref();
+  const slug = computed(() => slugify(search.value));
 
+  const tags = reactive({
+    list: {},
+    all: computed(() => {
+      const arr = [];
+      for (let t in tags.list) {
+        arr.push({
+          hash: t,
+          tag: tags.list[t],
+        });
+      }
+      return arr;
+    }),
+    count: computed(() => tags.all.length),
+    fuse: computed(() => {
+      return new Fuse(tags.all, {
+        includeScore: true,
+        keys: ["tag"],
+      });
+    }),
+    results: computed(() => {
+      if (!search.value) return [];
+      let res = tags.fuse.search(slug.value);
+      return res;
+    }),
+    minScore: computed(() => {
+      let min = 100;
+      tags.results.forEach((res) => {
+        if (res.score &lt; min) {
+          min = res.score;
+        }
+      });
+      return min;
+    }),
+  });
 
+  gun
+    .get("#tags")
+    .map()
+    .on((d, k) => {
+      tags.list[k] = d;
+    });
 
+  async function addTag(tag = slug.value) {
+    if (!tag) return;
+    let safe = slugify(tag);
+    const hash = await hashText(safe);
+    gun.get(`#tags`).get(`${hash}`).put(safe);
+  }
 
+  return { search, slug, tags, addTag };
+}
 
-    
+/**
+ * @typedef useTag
+ * @property {Reactive} list -  the reactive list of hashed data
+ * @property {Function} addToTag - stringifies an object and puts it into an immutable #tag graph
+ */
 
+/**
+ * Use a list of immutable data from a #tag
+ * @param {Ref} tag - A vue ref to watch - generated from props by `toRef(props,'tag')`
+ * @returns {useTag}
+ */
+export function useTag(tag = ref("tag")) {
+  const list = computed(() => {
+    const obj = reactive({});
+    gun
+      .get(`#${tag.value}`)
+      .map()
+      .on((d, k) => {
+        obj[k] = JSON.parse(d);
+      });
+    return obj;
+  });
 
-    <section class="readme">
-        <article><h1>GUN-VUE</h1>
-<p>Gun-vue – is where the peer-to-peer javascript database Gun meets the reactivity system of Vue 3. Easy to import composables for devs. Pluggable components for UX designers. Relay peer for enthusiasts. Demos and docs for starters. Open source for everyone!</p>
-<h2>@gun-vue</h2>
-<p>There are 3 packages in the <a href="https://www.npmjs.com/settings/gun-vue/packages">@gun-vue organization</a> for you to install and use.</p>
-<h3>Composables</h3>
-<p><a href="https://www.npmjs.com/package/@gun-vue/composables">@gun-vue/composables</a></p>
-<p>A set of composable functions for use with Vue 3 Composition API</p>
-<h3>Components</h3>
-<p><a href="https://www.npmjs.com/package/@gun-vue/components">@gun-vue/components</a></p>
-<p>A set of ready to use Vue 3 components as building blocks to implement Gun powered interactivity in seconds</p>
-<h2>Relay</h2>
-<p><a href="https://www.npmjs.com/package/@gun-vue/relay">@gun-vue/relay</a></p>
-<p>A simple no-store Gun server for throwing to any free tier Node.js environment.</p>
-<h2>DEMO</h2>
-<p>Try them all yourself in the demo app.</p>
-<p><a href="https://defucc.github.io/gun-vue">defucc.github.io/gun-vue</a></p>
-<h2>TO DO</h2>
-<p>We use different tools for development process organisation. I'm using Taskade it for everyone to have fun with building p2p apps. Jump in our project! https://www.taskade.com/d/XtaACTKmN4KqSC1v?share=view&amp;view=hsVKduBWoYMa9S7a</p></article>
+  async function addToTag(obj) {
+    const { text, hash } = await hashObj(obj);
+    gun.get(`#${tag.value}`).get(`${hash}`).put(text);
+  }
+
+  return { list, addToTag };
+}
+</code></pre>
+        </article>
     </section>
-
-
 
 
 
