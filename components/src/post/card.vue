@@ -1,13 +1,14 @@
 <script setup>
-import { color, ms } from '@composables'
+import { color, ms, useBanned } from '@composables'
 
-const emit = defineEmits(['upvote'])
+const emit = defineEmits(['upvote', 'downvote'])
 
 const props = defineProps({
   post: { type: [Object, String], default: { text: 'empty' } },
   timestamp: { type: Number, default: 0 },
   ban: { type: Number, default: 0 },
-  hash: { type: String, default: '' }
+  hash: { type: String, default: '' },
+  tag: { type: String, default: '' },
 })
 
 const title = computed(() => {
@@ -17,6 +18,8 @@ const title = computed(() => {
     return props.post?.title
   }
 })
+
+const banned = useBanned(props.hash)
 </script>
 
 <template lang='pug'>
@@ -27,11 +30,12 @@ const title = computed(() => {
     .text-md.truncate.overflow-hidden(v-if="!post.description && post.text") {{ post.text }}
   .flex-1
   .flex(style="flex: 1 1 2%")
+    post-star(:hash="hash" :tag="tag")
     button.button.items-center(@click.stop.prevent="$emit('upvote')")
-      .p-0.mr-1 {{ ms(Date.now() - timestamp) }}
-      la-thumbs-up
-    button.button.items-center(@click.stop.prevent="$emit('downvote')")
+      .p-0.mr-1.text-sm {{ ms(Date.now() - timestamp) }}
+      mdi-watering-can-outline
+    button.button.items-center(@click.stop.prevent="$emit('downvote')" :style="{ color: banned ? 'red' : 'inherit' }")
       .p-0.mr-1(v-if="ban > 0") {{ ms(Date.now() - ban) }}
-      la-thumbs-down
+      la-trash-alt
     slot
 </template>

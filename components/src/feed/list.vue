@@ -34,7 +34,7 @@ const color = useColor('deep')
         .p-1 {{ slug }} 
         .flex-1 
         .p-1 +
-      tag-label.tag(
+      feed-label.tag(
         v-for="(result,r) in tags.results" :key="r"
         @click="$emit('tag', result.item?.tag); search = ''"
         :style="{ opacity: 1 - result.score }"
@@ -45,7 +45,7 @@ const color = useColor('deep')
 
   .flex.flex-wrap.mt-8
     transition-group(name="fade")
-      tag-label.tag(
+      feed-label.tag(
         :color="color.hex(tag.hash || 0)"
         v-for="(tag,r) in tags.all" :key="r"
         @click="$emit('tag', tag.tag); search = ''"
@@ -54,7 +54,7 @@ const color = useColor('deep')
         )
 </template> 
 
-<style scoped>
+<style lang="postcss" scoped>
 .tag {
   @apply cursor-pointer flex-grow bg-light-700 rounded-md shadow-md m-1 py-2 px-2 hover:bg-light-200;
   &.new {

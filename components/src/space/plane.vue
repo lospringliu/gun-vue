@@ -8,6 +8,8 @@ const props = defineProps({
 })
 defineEmits(['user'])
 
+const TIMEOUT = 30000
+
 const { space, area, join } = useSpace()
 
 const selected = ref();
@@ -15,11 +17,12 @@ const plane = ref()
 
 const { width, height } = useElementBounding(plane)
 
-const arrowHeadSize = 8
+const arrowHeadSize = 6
 
 const arrows = computed(() => {
   const arr = []
-  space.links.forEach(link => {
+  Object.values(space.links).forEach(link => {
+    if (link.presence > TIMEOUT) return
     let arrow = getArrow(
       link.from.x * width.value,
       link.from.y * height.value,
@@ -27,10 +30,14 @@ const arrows = computed(() => {
       link.to.y * height.value,
       {
         padEnd: 24,
+        padStart: 18,
       }
     )
     const [sx, sy, c1x, c1y, c2x, c2y, ex, ey, ae] = arrow
-    arr.push({ link, sx, sy, c1x, c1y, c2x, c2y, ex, ey, ae })
+    arr.push({
+      link, sx, sy, c1x, c1y, c2x, c2y, ex, ey, ae,
+      d: `M ${sx} ${sy} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${ex} ${ey}`
+    })
   })
   return arr
 })
@@ -38,12 +45,17 @@ const arrows = computed(() => {
 
 <template lang='pug'>
 .flex.flex-col.items-center.relative.h-100vh(ref="plane")
-  transition-group(name="fade")
-    .absolute.top-0.left-0.bottom-0.right-0.bg-dark-100.bg-opacity-40(key="back" v-if="selected" @click="selected = null") 
-    .absolute.bg-light-200.top-4.break-all.p-4.shadow-xl.flex.flex-col.items-center.rounded-2xl(key="modal" v-if="selected")
-      account-avatar.cursor-pointer(:pub="selected" :size="160" @click="$emit('user', selected)")
-      account-mate(:pub="selected")
-      account-profile(:pub="selected")
+
+  ui-modal(:open="!!selected" @close="selected = null")
+    account-avatar.cursor-pointer(:pub="selected" :size="160" @click="$emit('user', selected)")
+    account-mate(:pub="selected")
+    account-profile(:pub="selected")
+  ui-modal(:open="!space.joined && user.is" @close="join()")
+    .text-2xl.p-4(v-if="user.is") Click here to join the space
+  ui-modal(:open="!user.is")
+    user-home(@browse="$router.push(`/users/${$event}`)")
+
+
   svg.h-full(
     style="cursor:none;"
     @click="join()"
@@ -70,13 +82,12 @@ const arrows = computed(() => {
       fill="none"
       stroke-width="0"
       )
-    g.arrows(v-for="a in arrows" :key="a" opacity="0.8")
+    g.arrows(v-for="(a,n) in arrows" :key="a" opacity="0.8")
       path(
-        :d="`M ${a.sx} ${a.sy} C ${a.c1x} ${a.c1y}, ${a.c2x} ${a.c2y}, ${a.ex} ${a.ey}`"
+        :d="a.d"
         :stroke="color.deep.hex(a.link.user)"
-        stroke-width="2"
+        stroke-width="1"
         fill="none"
-        stroke-dasharray="6"
         stroke-linecap="round"
       )
       polygon(
@@ -87,13 +98,13 @@ const arrows = computed(() => {
     line(
       v-if="space.my?.pos"
       :stroke="user.color"
-      stroke-width="4"
+      stroke-width="2"
       stroke-linecap="round"
       :x1="space.my.mouse.x * width"
       :y1="space.my.mouse.y * height"
       :x2="space.my.pos.x * width"
       :y2="space.my.pos.y * height"
-      stroke-dasharray="1 32"
+      stroke-dasharray="4 16"
     )
     g.mouse(:transform="`translate(${space.my.mouse.x * width} ${space.my.mouse.y * height})`")
       circle(
@@ -104,6 +115,7 @@ const arrows = computed(() => {
     g.guests
       g.guest.cursor-pointer(v-for="guest in space.guests" :key="guest" )
         space-guest.transition-all.ease-out.duration-600(
+          v-if="guest.hasPos"
           v-bind="guest"
           @click="selected = guest.pub"
           :style="{ transform: `translate(${guest?.pos?.x * width}px, ${guest?.pos?.y * height}px)` }"
